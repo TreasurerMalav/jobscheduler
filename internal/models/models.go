@@ -18,3 +18,11 @@ type JobDetail struct {
 	CreationTimestamp       string `json:"creation_timestamp"`
 	LatestUpdationTimestamp string `json:"latest_updation_timestamp"`
 }
+
+type JobsExecutionHistory struct {
+	ExecutionId string `json:"execution_id"`
+	JobName     string `json:"job_name"`
+	Status      string `json:"status"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+}
