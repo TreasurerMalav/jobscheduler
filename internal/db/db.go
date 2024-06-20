@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"jobscheduler/internal/models"
+	"time"
 )
 
 type DatabaseCreds struct {
@@ -15,7 +16,7 @@ var db *sql.DB
 func NewDatabaseCreds() *DatabaseCreds {
 	return &DatabaseCreds{
 		User:     "jobsadmin",
-		Password: "*****",
+		Password: "******",
 	}
 }
 
@@ -111,4 +112,44 @@ func DeleteJob(job string) (sql.Result, error) {
 
 	return result, err
 
+}
+
+func InsertExecutionDetails(job_name string, start_time time.Time, end_time time.Time, status string) error {
+	// insert a new job a to the table jobs_details
+	//var job models.Job
+	DatabaseCreds := NewDatabaseCreds()
+	db = DBConnection(DatabaseCreds.User, DatabaseCreds.Password, "jobs")
+	defer db.Close()
+	if end_time == (time.Time{}) {
+		_, err := db.Query("INSERT INTO jobs_execution_history (job_name, start_time, status) VALUES(?, ?, ?)", job_name, start_time, status)
+		defer db.Close()
+		return err
+	} else {
+		_, err := db.Query("INSERT INTO jobs_execution_history (job_name, start_time, end_time, status) VALUES(?, ?, ?, ?)", job_name, start_time, end_time, status)
+		defer db.Close()
+		return err
+
+	}
+
+}
+
+func GetExecutionHistory() []models.JobsExecutionHistory {
+	DatabaseCreds := NewDatabaseCreds()
+	db = DBConnection(DatabaseCreds.User, DatabaseCreds.Password, "jobs")
+	defer db.Close()
+	rows, err := db.Query("SELECT * FROM jobs_execution_history")
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+	var jobs_execution_history []models.JobsExecutionHistory
+	for rows.Next() {
+		var job models.JobsExecutionHistory
+		err := rows.Scan(&job.ExecutionId, &job.JobName, &job.StartTime, &job.EndTime, &job.Status)
+		if err != nil {
+			panic(err)
+		}
+		jobs_execution_history = append(jobs_execution_history, job)
+	}
+	return jobs_execution_history
 }
